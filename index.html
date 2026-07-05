@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MORS ANIMA — Acid Editorial Poster System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700;900&family=Instrument+Serif:ital@0;1&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<style>
+  /* ============ TOKENS (from design.md) ============ */
+  :root {
+    --primary: #1E33E6;      /* electric cobalt */
+    --secondary: #E6318A;    /* hot magenta */
+    --accent: #FF6A2C;       /* liquid coral */
+    --highlight: #C3ED2E;    /* acid lime */
+    --signal: #D14836;       /* seed vermillion */
+    --lavender: #B9A9D6;
+    --lavender-soft: #DCD3EC;
+
+    --bg: #0E0A24;           /* deep indigo-black */
+    --surface: #171041;
+    --card: #1E1650;
+    --cream: #F4F1EA;
+
+    --text: #F5F3FF;
+    --text-2: #B9B4D6;
+    --text-muted: #7A7595;
+    --ink: #0A0A0A;
+
+    --border: #2A2360;
+    --border-strong: #F5F3FF;
+
+    --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+    --sp-6: 24px; --sp-8: 32px; --sp-12: 48px; --sp-16: 64px;
+    --sp-24: 96px; --sp-32: 128px;
+
+    --r-sm: 4px; --r-md: 8px; --r-lg: 12px; --r-xl: 24px; --r-full: 9999px;
+
+    --glow: 0 0 24px rgba(30,51,230,.55);
+    --glow-pink: 0 0 28px rgba(230,49,138,.55);
+    --glow-lime: 0 0 26px rgba(195,237,46,.5);
+
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+    --fast: 120ms; --medium: 240ms; --slow: 480ms;
+
+    --f-display: "Instrument Serif", Georgia, serif;
+    --f-cond: "Anton", "Archivo", sans-serif;
+    --f-ui: "Archivo", system-ui, sans-serif;
+    --f-mono: "Space Mono", ui-monospace, monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--f-ui);
+    line-height: 1.55;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ============ GLOBAL GRAIN / STATIC OVERLAY ============ */
+  .grain {
+    position: fixed; inset: -50%;
+    width: 200%; height: 200%;
+    pointer-events: none; z-index: 9999;
+    opacity: .16; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    animation: static 0.6s steps(3) infinite;
+  }
+  @keyframes static {
+    0% { transform: translate(0,0); }
+    33% { transform: translate(-3%, 2%); }
+    66% { transform: translate(2%, -2%); }
+    100% { transform: translate(0,0); }
+  }
+
+  /* micro-label */
+  .label {
+    font-family: var(--f-mono);
+    font-size: 10px; letter-spacing: .28em;
+    text-transform: uppercase; color: var(--text-2);
+  }
+
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 var(--sp-8); }
+
+  /* ============ NAV ============ */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: var(--sp-4) var(--sp-8);
+    backdrop-filter: blur(8px);
+    background: rgba(14,10,36,.55);
+    border-bottom: 1px solid var(--border);
+  }
+  .brand { font-family: var(--f-cond); font-size: 20px; letter-spacing: .04em; text-transform: uppercase; }
+  .brand span { color: var(--highlight); }
+  .nav-links { display: flex; gap: var(--sp-6); }
+  .nav-links a {
+    font-family: var(--f-mono); font-size: 11px; letter-spacing: .22em;
+    text-transform: uppercase; color: var(--text-2); text-decoration: none;
+    transition: color var(--fast) var(--ease);
+  }
+  .nav-links a:hover { color: var(--highlight); }
+  @media (max-width: 720px) { .nav-links { display: none; } }
+
+  /* ============ HERO POSTER ============ */
+  .hero {
+    position: relative; min-height: 100vh;
+    padding: 120px var(--sp-8) var(--sp-16);
+    display: grid; place-items: center;
+    overflow: hidden;
+  }
+  /* liquid blobs */
+  .blobs { position: absolute; inset: 0; z-index: 0; filter: url(#goo) blur(6px); }
+  .blob { position: absolute; border-radius: 50%; mix-blend-mode: screen; }
+  .b1 { width: 520px; height: 520px; background: var(--primary); top: -8%; left: -6%; animation: float1 14s var(--ease) infinite; }
+  .b2 { width: 460px; height: 460px; background: var(--secondary); bottom: -12%; right: -4%; animation: float2 17s var(--ease) infinite; }
+  .b3 { width: 380px; height: 380px; background: var(--accent); top: 30%; right: 20%; animation: float3 12s var(--ease) infinite; }
+  .b4 { width: 300px; height: 300px; background: var(--highlight); bottom: 12%; left: 18%; animation: float1 19s var(--ease) infinite reverse; }
+  @keyframes float1 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(60px,40px) scale(1.12)} }
+  @keyframes float2 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-50px,-30px) scale(1.08)} }
+  @keyframes float3 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(30px,-50px) scale(0.9)} }
+  /* liquid morph — molten metaball shape shift */
+  @keyframes morph {
+    0%,100% { border-radius: 42% 58% 63% 37% / 45% 44% 56% 55%; }
+    50%     { border-radius: 60% 40% 38% 62% / 58% 55% 45% 42%; }
+  }
+  /* drip — vertical stretch/ooze for hanging tendrils */
+  @keyframes drip {
+    0%,100% { transform: scaleY(1) translateY(0); }
+    50%     { transform: scaleY(1.35) translateY(8%); }
+  }
+
+  /* starburst */
+  .starburst {
+    position: absolute; z-index: 1; width: 120px; height: 120px;
+    top: 16%; left: 12%;
+    animation: spin 24s linear infinite;
+  }
+  .starburst.two { top: auto; bottom: 14%; right: 10%; left: auto; width: 90px; height: 90px; animation-duration: 30s; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .hero-inner { position: relative; z-index: 3; text-align: center; max-width: 900px; }
+  .kicker {
+    display: inline-flex; align-items: center; gap: var(--sp-2);
+    font-family: var(--f-mono); font-size: 11px; letter-spacing: .3em;
+    text-transform: uppercase; color: var(--highlight);
+    border: 1px solid var(--border-strong); border-radius: var(--r-full);
+    padding: 6px 16px; margin-bottom: var(--sp-8);
+  }
+  .kicker::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--highlight); box-shadow: var(--glow-lime); }
+
+  .hero h1 {
+    font-family: var(--f-cond);
+    font-size: clamp(56px, 13vw, 168px);
+    line-height: .86; text-transform: uppercase; letter-spacing: -.01em;
+    text-shadow: 0 0 40px rgba(30,51,230,.35);
+  }
+  .hero h1 .liquid {
+    display: block;
+    font-family: var(--f-display); font-style: italic; font-weight: 400;
+    text-transform: none; letter-spacing: -.02em;
+    font-size: clamp(64px, 15vw, 200px); line-height: .8;
+    background: linear-gradient(100deg, var(--accent), var(--secondary) 75%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    margin: -.06em 0;
+    filter: drop-shadow(0 4px 30px rgba(230,49,138,.35));
+  }
+  .hero p.lede {
+    max-width: 560px; margin: var(--sp-8) auto var(--sp-12);
+    color: var(--text-2); font-size: 18px;
+  }
+  .cta-row { display: flex; gap: var(--sp-4); justify-content: center; flex-wrap: wrap; }
+
+  .btn {
+    font-family: var(--f-mono); font-size: 12px; letter-spacing: .2em;
+    text-transform: uppercase; font-weight: 700;
+    padding: 15px 30px; border-radius: var(--r-full);
+    border: 1px solid transparent; cursor: pointer; text-decoration: none;
+    display: inline-flex; align-items: center; gap: 10px;
+    transition: transform var(--medium) var(--ease), box-shadow var(--medium) var(--ease), background var(--fast) var(--ease);
+  }
+  .btn-primary { background: var(--primary); color: var(--text); box-shadow: var(--glow); }
+  .btn-primary:hover { transform: scale(1.03); box-shadow: 0 0 42px rgba(30,51,230,.85); }
+  .btn-accent { background: var(--accent); color: var(--ink); }
+  .btn-accent:hover { transform: scale(1.03); box-shadow: 0 0 36px rgba(255,106,44,.7); }
+  .btn-ghost { border-color: var(--border-strong); color: var(--text); }
+  .btn-ghost:hover { border-color: var(--highlight); color: var(--highlight); box-shadow: var(--glow-lime); }
+
+  /* margin-pinned micro labels */
+  .corner { position: absolute; z-index: 4; }
+  .corner.tl { top: 96px; left: var(--sp-8); }
+  .corner.tr { top: 96px; right: var(--sp-8); text-align: right; }
+  .corner.bl { bottom: var(--sp-8); left: var(--sp-8); }
+  .corner.br { bottom: var(--sp-8); right: var(--sp-8); text-align: right; }
+  .corner .label + .label { margin-top: 4px; }
+  @media (max-width: 720px) { .corner { display: none; } }
+
+  /* vertical running text */
+  .vtext {
+    position: absolute; z-index: 4; top: 50%;
+    writing-mode: vertical-rl; transform: translateY(-50%);
+    font-family: var(--f-mono); font-size: 11px; letter-spacing: .5em;
+    text-transform: uppercase; color: var(--text-muted);
+  }
+  .vtext.left { left: 14px; }
+  .vtext.right { right: 14px; transform: translateY(-50%) rotate(180deg); }
+  @media (max-width: 900px) { .vtext { display: none; } }
+
+  /* ============ MARQUEE ============ */
+  .marquee {
+    border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    background: var(--highlight); color: var(--ink);
+    overflow: hidden; white-space: nowrap; padding: 12px 0;
+  }
+  .marquee-track { display: inline-block; animation: scroll 22s linear infinite; }
+  .marquee-track span {
+    font-family: var(--f-cond); font-size: 24px; text-transform: uppercase;
+    letter-spacing: .02em; padding: 0 24px;
+  }
+  .marquee-track span::after { content: "✦"; margin-left: 48px; color: var(--secondary); }
+  @keyframes scroll { to { transform: translateX(-50%); } }
+
+  /* ============ SECTION HEADINGS ============ */
+  section { position: relative; padding: var(--sp-32) 0; }
+  .eyebrow { color: var(--accent); }
+  .sec-head { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--sp-8); margin-bottom: var(--sp-16); flex-wrap: wrap; }
+  .sec-head h2 {
+    font-family: var(--f-cond); font-size: clamp(40px, 7vw, 88px);
+    line-height: 1.05; text-transform: uppercase; letter-spacing: -.01em; max-width: 12ch;
+  }
+  .sec-head h2 em { font-family: var(--f-display); font-weight: 400; color: var(--lavender); }
+  .sec-head .aside { max-width: 320px; color: var(--text-2); font-size: 15px; }
+
+  /* ============ WORK / PRODUCT CARDS ============ */
+  #work {
+    padding-top: var(--sp-24);
+    padding-bottom: var(--sp-24);
+  }
+  #work .sec-head {
+    margin-bottom: var(--sp-12);
+  }
+  #work .sec-head h2 { max-width: 14ch; line-height: 1.08; }
+  #work .sec-head .aside { line-height: 1.55; }
+
+  .work-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-6);
+  }
+  @media (max-width: 1100px) { .work-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .work-grid { grid-template-columns: 1fr; } }
+
+  .work-card {
+    position: relative; display: block; text-decoration: none; color: inherit;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--r-lg); overflow: hidden;
+    transition: transform var(--medium) var(--ease), box-shadow var(--medium) var(--ease), border-color var(--fast);
+  }
+  .work-card::after {
+    content: ""; position: absolute; inset: 0; opacity: .45; pointer-events: none; z-index: 2;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n2'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n2)' opacity='0.5'/%3E%3C/svg%3E");
+    mix-blend-mode: overlay;
+  }
+  .work-card:hover { transform: translateY(-6px); box-shadow: var(--glow); border-color: var(--primary); }
+  .work-card:hover .work-arrow { color: var(--highlight); transform: translateX(4px); }
+
+  .work-thumb {
+    position: relative; aspect-ratio: 4/3; overflow: hidden;
+    border-bottom: 1px solid var(--border);
+  }
+  .work-thumb img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
+  .work-thumb .dot {
+    position: absolute; top: var(--sp-4); right: var(--sp-4); z-index: 3;
+    width: 10px; height: 10px; border-radius: 50%;
+  }
+
+  .work-body { padding: var(--sp-6); position: relative; z-index: 3; }
+  .work-num { font-family: var(--f-mono); font-size: 10px; letter-spacing: .2em; color: var(--highlight); }
+  .work-card h3 {
+    font-family: var(--f-cond); font-size: 26px; text-transform: uppercase;
+    margin: var(--sp-2) 0 var(--sp-2); line-height: .95;
+  }
+  .work-card h3 em {
+    font-family: var(--f-display); font-style: italic; text-transform: none; color: var(--lavender);
+  }
+  .work-card p { color: var(--text-2); font-size: 13px; line-height: 1.45; }
+  .work-meta {
+    display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-4);
+  }
+  .work-meta span {
+    font-family: var(--f-mono); font-size: 8px; letter-spacing: .16em;
+    text-transform: uppercase; padding: 4px 8px;
+    border: 1px solid var(--border); border-radius: var(--r-full); color: var(--text-muted);
+  }
+  .work-foot {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: var(--sp-4); padding-top: var(--sp-4); border-top: 1px solid var(--border);
+  }
+  .work-arrow {
+    font-family: var(--f-mono); font-size: 10px; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--text-2);
+    transition: color var(--fast) var(--ease), transform var(--medium) var(--ease);
+  }
+
+  .work-card--soon {
+    cursor: default; opacity: .55; border-style: dashed;
+  }
+  .work-card--soon:hover { transform: none; box-shadow: none; border-color: var(--border); }
+  .work-card--soon .work-thumb {
+    display: grid; place-items: center;
+    background: linear-gradient(135deg, var(--surface), var(--card));
+  }
+  .work-card--soon .work-thumb-placeholder {
+    font-family: var(--f-display); font-style: italic; font-size: 48px; color: var(--text-muted);
+  }
+
+  .work-principles {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-6);
+    margin-top: var(--sp-16); padding-top: var(--sp-8);
+    padding-bottom: var(--sp-2);
+    border-top: 1px solid var(--border);
+  }
+  @media (max-width: 900px) { .work-principles { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .work-principles { grid-template-columns: 1fr; } }
+  .work-principles li {
+    list-style: none; font-size: 12px; color: var(--text-2); line-height: 1.55;
+    padding-bottom: var(--sp-2);
+  }
+  .work-principles li b {
+    display: block; font-family: var(--f-mono); font-size: 9px;
+    letter-spacing: .2em; color: var(--accent); margin-bottom: 6px;
+  }
+
+  /* ============ ABOUT (CREAM) SECTION ============ */
+  #about {
+    padding-top: var(--sp-16);
+    padding-bottom: var(--sp-16);
+    overflow: hidden;
+  }
+  .cream {
+    background: var(--cream); color: var(--ink);
+    border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink);
+  }
+  #about .wrap { position: relative; z-index: 2; }
+
+  /* dreamy Poster-4 lavender liquid — quiet cream breathing room */
+  .about-blobs {
+    position: absolute; inset: 0; z-index: 0; pointer-events: none;
+    filter: url(#goo) blur(10px); opacity: .5;
+  }
+  .about-blobs .about-blob {
+    position: absolute; mix-blend-mode: multiply;
+    border-radius: 42% 58% 63% 37% / 45% 44% 56% 55%;
+    animation: float1 22s var(--ease) infinite, morph 13s var(--ease) infinite;
+  }
+  .about-blobs .ab1 { width: 420px; height: 420px; background: var(--lavender-soft); top: -14%; left: -8%; }
+  .about-blobs .ab2 { width: 340px; height: 340px; background: var(--lavender);      bottom: -18%; right: -6%; animation: float2 26s var(--ease) infinite, morph 15s var(--ease) infinite; }
+  .about-blobs .ab3 { width: 240px; height: 240px; background: var(--secondary); opacity: .22; top: 28%; right: 30%; animation: float3 18s var(--ease) infinite, morph 11s var(--ease) infinite; }
+
+  /* ink drips oozing down off the top hairline */
+  .about-drips {
+    position: absolute; top: 0; left: 0; right: 0; z-index: 1;
+    height: 40px; pointer-events: none;
+  }
+  .about-drips .ink-drip {
+    position: absolute; top: -1px; background: var(--ink);
+    border-radius: 0 0 50% 50% / 0 0 80% 80%;
+    transform-origin: top center;
+    animation: drip 6s var(--ease) infinite;
+  }
+  .about-drips .ink-drip::after {
+    content: ""; position: absolute; left: 50%; top: 100%;
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--ink); transform: translateX(-50%);
+  }
+  .about-drips .id1 { left: 16%; width: 8px;  height: 26px; animation-duration: 6.5s; }
+  .about-drips .id2 { left: 44%; width: 6px;  height: 18px; animation-duration: 5.2s; animation-delay: -2s; }
+  .about-drips .id3 { left: 72%; width: 10px; height: 34px; animation-duration: 7.5s; animation-delay: -3.5s; }
+  .about-drips .id4 { left: 88%; width: 5px;  height: 14px; animation-duration: 5.8s; animation-delay: -1s; }
+  .about-split {
+    display: grid; grid-template-columns: minmax(260px, 0.82fr) minmax(480px, 1.18fr);
+    gap: var(--sp-16); align-items: center;
+  }
+  @media (max-width: 900px) {
+    .about-split { grid-template-columns: 1fr; gap: var(--sp-8); }
+    .about-portrait { margin: var(--sp-4) auto 0; max-width: min(560px, 100%); }
+    .about-copy { max-width: none; }
+    .about-copy h2 { max-width: none; }
+  }
+
+  .about-copy {
+    max-width: 36ch; padding-right: var(--sp-6);
+    align-self: center;
+  }
+  .about-copy .label {
+    font-size: 10px; letter-spacing: .28em; color: #55506a;
+  }
+  .about-copy h2 {
+    font-family: var(--f-cond); text-transform: uppercase;
+    font-size: clamp(38px, 4.5vw, 68px);
+    line-height: .9; letter-spacing: -.01em;
+    margin-top: var(--sp-4);
+  }
+  .about-copy h2 .h2-line { display: block; }
+  @media (min-width: 901px) {
+    .about-copy h2 .h2-line { white-space: nowrap; }
+  }
+  .about-copy h2 .h2-line + .h2-line { margin-top: .06em; }
+  .about-copy h2 em {
+    font-family: var(--f-display); font-weight: 400; font-style: italic; text-transform: none;
+    background: linear-gradient(100deg, var(--secondary), var(--primary));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .about-copy .about-details {
+    grid-template-columns: 1fr;
+    margin-top: var(--sp-10); padding-top: var(--sp-8);
+    gap: var(--sp-6);
+    border-top: 1px solid rgba(10, 10, 10, .12);
+  }
+  .about-copy .about-details dt {
+    font-size: 10px; letter-spacing: .2em; color: var(--signal); margin-bottom: 6px;
+  }
+  .about-copy .about-details dd {
+    font-size: 15px; color: #322d45; line-height: 1.5;
+  }
+
+  .about-details {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+  }
+  @media (max-width: 560px) { .about-details { grid-template-columns: 1fr; } }
+  .about-details dt {
+    font-family: var(--f-mono); letter-spacing: .22em; text-transform: uppercase;
+  }
+
+  .about-portrait {
+    position: relative; width: 100%; max-width: 640px; aspect-ratio: 1;
+    margin-left: auto; justify-self: end;
+  }
+  .about-photo {
+    position: absolute; inset: 0; z-index: 1;
+    display: grid; place-items: center;
+  }
+  .about-photo-inner {
+    width: 60%; aspect-ratio: 1; overflow: hidden;
+    border-radius: 42% 58% 63% 37% / 45% 44% 56% 55%;
+    border: 2px solid var(--ink);
+    box-shadow: 0 20px 56px rgba(10,10,36,.14);
+    background: linear-gradient(135deg, #DCD3EC, #B9A9D6);
+    animation: morph 16s var(--ease) infinite;
+  }
+  .about-photo-inner img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+  }
+  .about-ring {
+    position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%;
+    animation: spin 28s linear infinite; pointer-events: none;
+  }
+  .about-ring text {
+    font-family: "Space Mono", ui-monospace, monospace;
+    font-size: 14px; letter-spacing: .32em; fill: var(--ink);
+    text-transform: uppercase;
+  }
+
+  /* ============ MANIFESTO ============ */
+  #manifesto {
+    position: relative; overflow: hidden;
+    padding: var(--sp-32) 0;
+  }
+  #manifesto .blobs { opacity: .72; filter: url(#goo) blur(11px); }
+  /* molten metaballs — layer float + morph so they ooze instead of just drifting */
+  #manifesto .blob {
+    border-radius: 42% 58% 63% 37% / 45% 44% 56% 55%;
+    animation-name: float1, morph;
+    animation-duration: 16s, 9s;
+    animation-timing-function: var(--ease), var(--ease);
+    animation-iteration-count: infinite, infinite;
+  }
+  #manifesto .b2 { animation-name: float2, morph; animation-duration: 19s, 11s; }
+  #manifesto .b3 { animation-name: float3, morph; animation-duration: 14s, 8s; }
+  #manifesto .b4 { animation-name: float1, morph; animation-duration: 21s, 12s; animation-direction: reverse, normal; }
+  /* dripping tendrils that ooze down through the field */
+  #manifesto .drip {
+    position: absolute; z-index: 0; mix-blend-mode: screen;
+    border-radius: 50% 50% 48% 52% / 30% 30% 70% 70%;
+    transform-origin: top center;
+    animation: drip 7s var(--ease) infinite;
+  }
+  #manifesto .drip.d1 { width: 120px; height: 320px; background: var(--secondary); top: -4%; left: 22%; animation-duration: 8s; }
+  #manifesto .drip.d2 { width: 90px;  height: 260px; background: var(--accent);    top: -6%; right: 26%; animation-duration: 6.5s; animation-delay: -2s; }
+  #manifesto .drip.d3 { width: 70px;  height: 200px; background: var(--primary);   top: -3%; left: 58%; animation-duration: 9s; animation-delay: -4s; }
+  #manifesto .wrap { position: relative; z-index: 2; }
+  .manifesto { text-align: center; }
+  .manifesto .big {
+    font-family: var(--f-display); font-style: italic; font-weight: 400;
+    font-size: clamp(36px, 7vw, 92px); line-height: 1.08;
+    max-width: min(900px, 92vw); margin: 0 auto;
+  }
+  .manifesto .big b { font-family: var(--f-cond); font-weight: 400; font-style: normal; color: var(--highlight); white-space: nowrap; }
+  .principles {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-4);
+    margin-top: var(--sp-16); text-align: left;
+    padding: var(--sp-8);
+    border-radius: var(--r-lg);
+    border: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .principles li:nth-child(4) { grid-column: 1; grid-row: 2; }
+  .principles li:nth-child(5) { grid-column: 3; grid-row: 2; }
+  @media (max-width: 720px){
+    .principles { grid-template-columns: 1fr; }
+    .principles li:nth-child(4),
+    .principles li:nth-child(5) { grid-column: auto; grid-row: auto; }
+  }
+  .principles li {
+    list-style: none; border-top: 1px solid var(--border); padding-top: var(--sp-4);
+    font-size: 14px; color: var(--text-2);
+  }
+  .principles li b { display: block; font-family: var(--f-mono); font-size: 11px; letter-spacing: .2em; color: var(--accent); margin-bottom: 6px; }
+
+  .site-footer {
+    position: relative; z-index: 2;
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: var(--sp-4);
+    margin-top: var(--sp-24); padding-top: var(--sp-8);
+    border-top: 1px solid var(--border); text-align: left;
+  }
+  .site-footer .label { color: var(--text-muted); }
+
+  /* reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; scroll-behavior: auto; }
+  }
+</style>
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+
+  <!-- SVG filters + reusable defs -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <filter id="goo">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="18" result="blur" />
+        <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -9" result="goo" />
+        <feBlend in="SourceGraphic" in2="goo" />
+      </filter>
+    </defs>
+  </svg>
+
+  <nav>
+    <div class="brand">MORS<span>◆</span>ANIMA</div>
+    <div class="nav-links">
+      <a href="#work">Work</a>
+      <a href="#about">About</a>
+      <a href="#manifesto">Manifesto</a>
+    </div>
+    <a href="#manifesto" class="btn btn-ghost" style="padding:10px 20px;">Enter ↗</a>
+  </nav>
+
+  <!-- ============ HERO ============ -->
+  <header class="hero">
+    <div class="blobs" aria-hidden="true">
+      <div class="blob b1"></div>
+      <div class="blob b2"></div>
+      <div class="blob b3"></div>
+      <div class="blob b4"></div>
+    </div>
+
+    <svg class="starburst" viewBox="0 0 100 100" aria-hidden="true">
+      <g fill="var(--accent)"><path d="M50 0 L58 42 L100 50 L58 58 L50 100 L42 58 L0 50 L42 42 Z"/></g>
+    </svg>
+    <svg class="starburst two" viewBox="0 0 100 100" aria-hidden="true">
+      <g fill="var(--highlight)"><path d="M50 0 L58 42 L100 50 L58 58 L50 100 L42 58 L0 50 L42 42 Z"/></g>
+    </svg>
+
+    <!-- margin micro-labels -->
+    <div class="corner tl">
+      <div class="label">Vol. 02 / Composition</div>
+      <div class="label">Medium — Standard</div>
+    </div>
+    <div class="corner tr">
+      <div class="label">禁じられた飲み物</div>
+      <div class="label">Ed. Acid — 45°</div>
+    </div>
+    <div class="corner bl">
+      <div class="label">Lat 41.87 / Lng -87.62</div>
+      <div class="label">01:00 AM — Nocta</div>
+    </div>
+    <div class="corner br">
+      <div class="label">Grain · Static · Drip</div>
+      <div class="label">Print № 0001</div>
+    </div>
+
+    <div class="vtext left">Dripping · Liquid Aesthetic</div>
+    <div class="vtext right">Bold Color Contrast · Crowded &amp; Interesting</div>
+
+    <div class="hero-inner">
+      <span class="kicker">Experimental Vibe Coding Studio</span>
+      <h1>
+        Portfolio
+        <span class="liquid">Website</span>
+        Poster Lab
+      </h1>
+      <p class="lede">
+        A design language of dripping color, halftone static, and controlled chaos —
+        where a strict grid meets molten type and acid contrast.
+      </p>
+      <div class="cta-row">
+        <a href="#work" class="btn btn-primary">View the work</a>
+        <a href="#manifesto" class="btn btn-ghost">Read manifesto</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ MARQUEE ============ -->
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee-track">
+      <span>Liquid</span><span>Contrast</span><span>Static</span><span>Grain</span><span>Crowded</span><span>Editorial</span>
+      <span>Liquid</span><span>Contrast</span><span>Static</span><span>Grain</span><span>Crowded</span><span>Editorial</span>
+    </div>
+  </div>
+
+  <!-- ============ VIEW THE WORK ============ -->
+  <section id="work" class="wrap">
+    <div class="sec-head">
+      <h2>View the <em>work</em></h2>
+      <p class="aside">Four different websites chronicling my development across 8 weeks. Each one gets more and more complex, and explores a different set of aesthetic ideals, functionalities, and integrations.</p>
+    </div>
+    <div class="work-grid">
+      <a class="work-card" href="product-fittrack.html">
+        <div class="work-thumb">
+          <span class="dot" style="background:#9395D3;box-shadow:0 0 16px rgba(147,149,211,.6)"></span>
+          <img src="Assets/FitTrack/FitTrack_Home.png" alt="FitTrack home screen preview" />
+        </div>
+        <div class="work-body">
+          <span class="work-num">01 / Mobile App</span>
+          <h3>Fit<em>Track</em></h3>
+          <p>Card-based workout routines, progress charts, and personal accent theme colors.</p>
+          <div class="work-meta">
+            <span>Mobile</span><span>Fitness</span><span>6 Screens</span>
+          </div>
+          <div class="work-foot">
+            <span class="work-arrow">View project →</span>
+          </div>
+        </div>
+      </a>
+
+      <a class="work-card" href="product-botanica.html">
+        <div class="work-thumb">
+          <span class="dot" style="background:var(--secondary);box-shadow:var(--glow-pink)"></span>
+          <img src="Assets/Garden%20Design%20Workspace/Garden_Home.png" alt="Botanica home screen preview" />
+        </div>
+        <div class="work-body">
+          <span class="work-num">02 / Web App</span>
+          <h3>Botanica <em>Gardens</em></h3>
+          <p>Living garden archive with palette swatches, plant forms, and collection modals.</p>
+          <div class="work-meta">
+            <span>Web</span><span>Design Tool</span><span>7 Screens</span>
+          </div>
+          <div class="work-foot">
+            <span class="work-arrow">View project →</span>
+          </div>
+        </div>
+      </a>
+
+      <a class="work-card" href="product-apertif.html">
+        <div class="work-thumb">
+          <span class="dot" style="background:var(--accent);box-shadow:0 0 16px rgba(255,106,44,.6)"></span>
+          <img src="Assets/Encyclopedia%20Apertif/Apertif_Home.png" alt="Encyclopedia Apertif home screen preview" />
+        </div>
+        <div class="work-body">
+          <span class="work-num">03 / Web App</span>
+          <h3>Encyclopedia <em>Apertif</em></h3>
+          <p>Dark cocktail archive with spirit search, recipe cards, and glowing discovery states.</p>
+          <div class="work-meta">
+            <span>Web</span><span>Food &amp; Drink</span><span>5 Screens</span>
+          </div>
+          <div class="work-foot">
+            <span class="work-arrow">View project →</span>
+          </div>
+        </div>
+      </a>
+
+      <a class="work-card" href="product-conrad.html">
+        <div class="work-thumb">
+          <span class="dot" style="background:var(--highlight);box-shadow:var(--glow-lime)"></span>
+          <img src="Assets/SL%20Conrad/Conrad_Home.jpeg" alt="S.L. Conrad landscape portfolio home screen preview" />
+        </div>
+        <div class="work-body">
+          <span class="work-num">04 / Portfolio Site</span>
+          <h3>S.L. <em>Conrad</em></h3>
+          <p>Misty landscape-architecture portfolio with tag search, editorial case studies, and GIS mapping.</p>
+          <div class="work-meta">
+            <span>Web</span><span>Portfolio</span><span>5 Screens</span>
+          </div>
+          <div class="work-foot">
+            <span class="work-arrow">View project →</span>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <ul class="work-principles">
+      <li><b>01 / Grid</b>Controlled chaos — crowd the canvas, anchor it to a strict grid.</li>
+      <li><b>02 / Texture</b>Grain, halftone, and static are material — never flat-clean.</li>
+      <li><b>03 / Contrast</b>Complementary clashes drive hierarchy — cobalt, coral, magenta, lime.</li>
+      <li><b>04 / Type</b>Two voices only — condensed grotesque plus one liquid-serif hero word.</li>
+    </ul>
+  </section>
+
+  <!-- ============ ABOUT ============ -->
+  <section id="about" class="cream">
+    <div class="about-blobs" aria-hidden="true">
+      <div class="about-blob ab1"></div>
+      <div class="about-blob ab2"></div>
+      <div class="about-blob ab3"></div>
+    </div>
+    <div class="about-drips" aria-hidden="true">
+      <span class="ink-drip id1"></span>
+      <span class="ink-drip id2"></span>
+      <span class="ink-drip id3"></span>
+      <span class="ink-drip id4"></span>
+    </div>
+    <div class="wrap about-split">
+      <div class="about-copy">
+        <div class="label">About — Mors Anima</div>
+        <h2>
+          <span class="h2-line">Samantha Conrad</span>
+          <span class="h2-line"><em>ARTGR4840</em></span>
+        </h2>
+        <dl class="about-details">
+          <div>
+            <dt>Focus</dt>
+            <dd>Creating beautiful web applications with the power of AI</dd>
+          </div>
+          <div>
+            <dt>Taught by</dt>
+            <dd>Aaron Yang Ph.D.</dd>
+          </div>
+          <div>
+            <dt>Founded</dt>
+            <dd>2026 — Iowa State University</dd>
+          </div>
+          <div>
+            <dt>Utilizing</dt>
+            <dd>Cursor, Figma, Netlify, Github, ReactJS, API, and more</dd>
+          </div>
+        </dl>
+      </div>
+
+      <div class="about-portrait">
+        <div class="about-photo">
+          <div class="about-photo-inner">
+            <img src="Assets/About/portrait.jpg" alt="Portrait of Samantha Conrad" width="600" height="600" />
+          </div>
+        </div>
+        <svg class="about-ring" viewBox="0 0 660 660" aria-hidden="true">
+          <defs>
+            <path id="aboutRingPath" d="M330,330 m-278,0 a278,278 0 1,1 556,0 a278,278 0 1,1 -556,0" />
+          </defs>
+          <circle cx="330" cy="330" r="310" fill="none" stroke="#0A0A0A" stroke-width="2" opacity=".35"/>
+          <circle cx="330" cy="330" r="198" fill="none" stroke="#0A0A0A" stroke-width="1.5" opacity=".2"/>
+          <text font-size="14" letter-spacing="4">
+            <textPath href="#aboutRingPath" startOffset="0">
+              MORS ANIMA · ACID EDITORIAL · POSTER SYSTEM · EST. 2026 · BEAUTIFUL NOISE · MORS ANIMA · ACID EDITORIAL · POSTER SYSTEM · EST. 2026 ·
+            </textPath>
+          </text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ MANIFESTO ============ -->
+  <section id="manifesto" class="manifesto">
+    <div class="blobs" aria-hidden="true">
+      <div class="blob b1"></div>
+      <div class="blob b2"></div>
+      <div class="blob b3"></div>
+      <div class="blob b4"></div>
+      <div class="drip d1"></div>
+      <div class="drip d2"></div>
+      <div class="drip d3"></div>
+    </div>
+    <div class="wrap">
+      <div class="label" style="margin-bottom:var(--sp-8)">— The Manifesto —</div>
+      <p class="big">Using AI tools to develop, design, and launch <b>real working</b> web applications</p>
+      <ul class="principles">
+        <li><b>Principle 01</b>AI as a tool for designers, not a replacement.</li>
+        <li><b>Principle 02</b>Clean AI assisted workflows create guiding documents and user friendly interfaces mean that once the coding is done, so is the AI.</li>
+        <li><b>Principle 03</b>Interesting designs made to elicit passion and interest.</li>
+        <li><b>Principle 04</b>Websites with real functionality</li>
+        <li><b>Principle 05</b>Dynamic prompts and smart usage of different AI models to produce the best result.</li>
+      </ul>
+      <div class="site-footer">
+        <span class="label">© 2026 Mors Anima — Acid Editorial</span>
+        <span class="label">Made with grain, glow &amp; goo ✦</span>
+      </div>
+    </div>
+  </section>
+</body>
+</html>
