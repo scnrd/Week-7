@@ -1,6 +1,6 @@
 # Design System
 
-> **Mors Anima — Portfolio Website Poster Lab** for ARTGR4840 (Iowa State University, Summer 2026). The visual language is reverse-engineered from a four-poster mood board (editorial + acid-graphic posters) and applied to a **vibe-coding portfolio** that showcases four AI-assisted web products developed across eight weeks. Stated creative direction: **dripping/liquid aesthetic, bold color contrast, noise & static for a dreamy atmosphere, crowded and interesting.** This is a *graphic/editorial poster* design language adapted into a portable UI system.
+> **Conrad Anima — Portfolio Website Poster Lab** for ARTGR4840 (Iowa State University, Summer 2026). The visual language is reverse-engineered from a four-poster mood board (editorial + acid-graphic posters) and applied to a **vibe-coding portfolio** that showcases four AI-assisted web products developed across eight weeks. Stated creative direction: **dripping/liquid aesthetic, bold color contrast, noise & static for a dreamy atmosphere, crowded and interesting.** This is a *graphic/editorial poster* design language adapted into a portable UI system.
 
 ---
 
@@ -341,10 +341,17 @@ Manifesto headline (`.big`): *"Using AI tools to develop, design, and launch **r
 5. **`#about.cream`** — dreamy lavender liquid layer (`.about-blobs`), ink drips (`.about-drips`), split copy + morphing portrait ring
 6. **`#manifesto`** — bold liquid blobs + drip tendrils, manifesto headline, 5 principles, site footer
 
-### Hero copy (current)
+### Hero copy (current — canonical, do not change without request)
 - **Kicker:** Experimental Vibe Coding Studio
-- **H1:** Portfolio / **Website** (liquid) / Poster Lab
+- **H1 (three lines, exact):**
+  - Line 1: `Website`
+  - Line 2 (`.liquid` gradient word): `S.L. Conrad`
+  - Line 3: `Portfolio`
 - **CTAs:** View the work · Read manifesto
+
+> The hero `.liquid` word MUST read **S.L. Conrad** (not "Mors Anima", "Conrad", "Website", etc.), never as anything else.
+
+- **Site wordmark:** `CONRAD ◆ ANIMA` (green `◆` in a `<span>` between the words) — used site-wide: nav brand, page `<title>`, about label, about-ring SVG text, and all footer copyrights. The old "Mors Anima" name has been fully retired.
 
 ### About copy (current)
 - **H2:** Samantha Conrad / **ARTGR4840** (liquid gradient em)
