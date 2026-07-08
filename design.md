@@ -485,6 +485,35 @@ Every `product-hero` carries decorative layers behind `.hero-grid` (z-index 2):
 - **Vertical running text** — `.vtext.left` / `.vtext.right`.
 - **Corner micro-labels** — `.corner.bl` / `.corner.br`, stacked mono labels. Hidden ≤900px.
 
+**Hero grid is standardized** across all four product pages — identical markup (kicker + title/lede/meta in the left column; `.label` "Client Brief" + brief paragraph, right-aligned, in the right column). Only content differs per product (vol number, kicker, vtext, brief). `.product-hero` uses `padding: 110px var(--sp-8) var(--sp-24)` so bottom-aligned grid content clears the pinned corner micro-labels.
+
+### Live-site badge (`.hero-badge`)
+A circular "stamp" link to a product's **deployed** site, echoing the about-portrait ring. Add it as the **first** child of the hero's right column (above "Client Brief"). Present on all four product pages, each pointing at its own live deployment:
+
+| Product | Live URL |
+|---------|----------|
+| Apertif | `https://wonderful-cupcake-d71938.netlify.app/` |
+| FitTrack | `https://splendid-gnome-5b526c.netlify.app/` |
+| Botanica | `https://precious-marigold-2ea5a4.netlify.app/` |
+| Conrad | `https://sconrad.netlify.app/` |
+
+Each uses a unique SVG `path` id (`<product>BadgePath`) and its own `aria-label`. The CSS lives in `product.css` and auto-adopts each page's theme.
+
+```html
+<a class="hero-badge" href="<LIVE_URL>" target="_blank" rel="noopener" aria-label="Open the live … site in a new tab">
+  <svg class="hero-badge-ring" viewBox="0 0 120 120" aria-hidden="true">
+    <defs><path id="…BadgePath" d="M60,60 m-46,0 a46,46 0 1,1 92,0 a46,46 0 1,1 -92,0" /></defs>
+    <text><textPath href="#…BadgePath" startOffset="0">VIEW LIVE SITE · CLICK HERE · … </textPath></text>
+  </svg>
+  <span class="hero-badge-inner">Click<br>here!</span>
+</a>
+```
+
+- `.hero-badge-inner` — morphing blob (`morph` keyframe), `--product-accent` fill, `--ink` text, `--product-glow`; picks up each page's theme automatically.
+- `.hero-badge-ring` — spinning (`spin`) mono ring text in `--product-accent`.
+- **Sizing:** 240px desktop / 176px ≤900px (centered when the hero stacks).
+- **Required:** `target="_blank"`, `rel="noopener"`, and an `aria-label` (ring text is `aria-hidden`).
+
 ### Showcase frame & label
 ```html
 <div class="showcase-frame-wrap">
