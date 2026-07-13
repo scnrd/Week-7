@@ -422,40 +422,20 @@ nav {
   padding: var(--sp-32) 0;
   border-top: 1px solid var(--border);
 }
-.process-grid {
-  display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-16);
-  align-items: start;
-}
-@media (max-width: 900px) { .process-grid { grid-template-columns: 1fr; gap: var(--sp-12); } }
-.process-lead p {
-  color: var(--text-2); font-size: var(--text-desc); max-width: 46ch;
-}
-.process-figure { margin-top: var(--sp-8); }
-.process-figure .frame-dark {
-  border: 1px solid var(--border); border-radius: var(--r-xl); overflow: hidden;
-  box-shadow: var(--product-glow);
-}
-.process-figure .frame-dark img { width: 100%; display: block; }
-.process-figure .label { display: inline-block; margin-top: var(--sp-3); }
-.process-notes { display: flex; flex-direction: column; gap: var(--sp-12); }
-.process-note { border-top: 1px solid var(--border); padding-top: var(--sp-6); }
-.process-note .process-num {
-  font-family: var(--f-mono); font-size: var(--text-min); letter-spacing: .22em;
-  text-transform: uppercase; color: var(--product-accent);
-}
-.process-note h3 {
-  font-family: var(--f-cond); font-size: clamp(24px, 3.4vw, 40px);
-  text-transform: uppercase; line-height: .94;
-  margin: var(--sp-3) 0 var(--sp-4); color: var(--text);
-}
-.process-note h3 em {
-  font-family: inherit; font-style: normal; font-weight: inherit;
-  text-transform: uppercase; color: inherit;
-}
-.process-note p { color: var(--text-2); font-size: var(--text-desc); max-width: 44ch; }
 /* text-only process step — full width, no image column */
 .process .feature-block.process-solo { grid-template-columns: 1fr; }
 .process .feature-block.process-solo .feature-copy p { max-width: 70ch; }
+/* lead process step — image is the large focal point, copy sits above (desktop-first) */
+.process .feature-block.process-hero {
+  grid-template-columns: 1fr; gap: var(--sp-8);
+}
+.process .feature-block.process-hero .feature-copy p {
+  max-width: 68ch; font-size: clamp(18px, 1.6vw, 22px);
+}
+.process .feature-block.process-hero .frame-dark { width: 100%; }
+.process .feature-block.process-hero .frame-dark img {
+  width: 100%; max-height: 74vh; object-fit: cover;
+}
 
 /* ============ PRODUCT NAV FOOTER ============ */
 .product-nav {
